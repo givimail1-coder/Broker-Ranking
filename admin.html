@@ -395,7 +395,7 @@
         let currentLogo = "ioka-logo.png";
 
         // Load saved data from localStorage
-        function loadSavedData() {
+        async function loadSavedData() {
             const savedData = localStorage.getItem('iokaBrokerData');
             const savedLogo = localStorage.getItem('iokaLogo');
             
@@ -578,8 +578,8 @@
         }
 
         // Initialize admin panel
-        function initAdminPanel() {
-            loadSavedData();
+        async function initAdminPanel() {
+            await loadSavedData();
             renderBrokerForms();
             
             // Add event listener for logo URL changes
