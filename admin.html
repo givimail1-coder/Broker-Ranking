@@ -1,577 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IOKA Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        /* IOKA Color Scheme */
-        :root {
-            --ioka-dark-blue: #0c2f6a;
-            --ioka-blue: #0055b8;
-            --ioka-turquoise: #00a0b0;
-            --ioka-light-gray: #f5f7fa;
-            --ioka-medium-gray: #e2e8f0;
-            --ioka-dark-gray: #64748b;
-            --text-white: #ffffff;
-            --text-dark: #1e293b;
+<script>
+    // Function to format numbers with commas
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Function to calculate progress percentage
+    function calculateProgress(commission, target) {
+        return Math.min(100, Math.round((commission / target) * 100));
+    }
+
+    // Function to update the current date
+    function updateDate() {
+        const options = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Dubai' };
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', options);
+        document.getElementById('current-date').textContent = formatter.format(now);
+    }
+
+    // Function to load logo and data from JSON file
+    async function loadData() {
+        try {
+            const response = await fetch('broker-data.json');
+            const data = await response.json();
+            
+            // Update logo
+            if (data.logo) {
+                document.getElementById('company-logo').src = data.logo;
+            }
+            
+            // Return broker data
+            return data.brokers || [];
+        } catch (error) {
+            console.error('Error loading data:', error);
+            // Return sample data if file doesn't exist yet
+            return [
+                {
+                    rank: 1,
+                    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
+                    name: "Ahmed Al Mansouri",
+                    commission: 1500000,
+                    target: 2000000,
+                    listings: 15
+                },
+                {
+                    rank: 2,
+                    photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1899&q=80",
+                    name: "Fatima Al Zahra",
+                    commission: 950000,
+                    target: 1500000,
+                    listings: 12
+                },
+                {
+                    rank: 3,
+                    photo: "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1886&q=80",
+                    name: "Mohammed Hassan",
+                    commission: 2200000,
+                    target: 2500000,
+                    listings: 18
+                },
+                {
+                    rank: 4,
+                    photo: "https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
+                    name: "Layla Abbas",
+                    commission: 800000,
+                    target: 1500000,
+                    listings: 9
+                },
+                {
+                    rank: 5,
+                    photo: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1780&q=80",
+                    name: "Omar Khalid",
+                    commission: 1800000,
+                    target: 2500000,
+                    listings: 17
+                }
+            ];
         }
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+    // Function to populate the brokers table
+    async function populateBrokersTable() {
+        const brokerData = await loadData();
+        const tableBody = document.getElementById('brokers-table-body');
+        tableBody.innerHTML = '';
 
-        body {
-            background: linear-gradient(135deg, var(--ioka-dark-blue) 0%, #1e4a82 100%);
-            color: var(--text-dark);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: var(--text-white);
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Header */
-        .admin-header {
-            background: var(--ioka-dark-blue);
-            padding: 1.5rem 2rem;
-            text-align: center;
-            border-bottom: 2px solid var(--ioka-turquoise);
-        }
-
-        .admin-header h1 {
-            color: var(--text-white);
-            font-size: 1.8rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-header p {
-            color: var(--ioka-medium-gray);
-            font-size: 1rem;
-        }
-
-        /* Main Content */
-        .admin-main {
-            padding: 2rem;
-        }
-
-        /* Logo Section */
-        .logo-section {
-            background: var(--ioka-light-gray);
-            padding: 1.5rem;
-            border-radius: 0.8rem;
-            margin-bottom: 2rem;
-            border: 2px dashed var(--ioka-medium-gray);
-        }
-
-        .logo-section h2 {
-            color: var(--ioka-dark-blue);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .logo-preview {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .logo-preview img {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-            border: 2px solid var(--ioka-turquoise);
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-        }
-
-        .logo-input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid var(--ioka-medium-gray);
-            border-radius: 0.5rem;
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-        }
-
-        .logo-input:focus {
-            outline: none;
-            border-color: var(--ioka-turquoise);
-        }
-
-        /* Brokers Section */
-        .brokers-section {
-            margin-bottom: 2rem;
-        }
-
-        .brokers-section h2 {
-            color: var(--ioka-dark-blue);
-            margin-bottom: 1.5rem;
-            font-size: 1.3rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--ioka-light-gray);
-        }
-
-        .broker-card {
-            background: var(--ioka-light-gray);
-            padding: 1.5rem;
-            border-radius: 0.8rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--ioka-medium-gray);
-        }
-
-        .broker-card h3 {
-            color: var(--ioka-dark-blue);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .broker-number {
-            background: var(--ioka-turquoise);
-            color: var(--text-white);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            color: var(--ioka-dark-gray);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            padding: 0.8rem;
-            border: 2px solid var(--ioka-medium-gray);
-            border-radius: 0.5rem;
-            font-size: 0.95rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--ioka-turquoise);
-        }
-
-        .photo-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--ioka-turquoise);
-            margin-top: 0.5rem;
-        }
-
-        /* Progress display (read-only) */
-        .progress-display {
-            background: var(--ioka-medium-gray);
-            padding: 0.8rem;
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--ioka-dark-gray);
-            border: 2px solid transparent;
-        }
-
-        /* Actions Section */
-        .actions-section {
-            background: var(--ioka-light-gray);
-            padding: 1.5rem;
-            border-radius: 0.8rem;
-            text-align: center;
-            border: 2px dashed var(--ioka-turquoise);
-        }
-
-        .save-btn {
-            background: var(--ioka-turquoise);
-            color: var(--text-white);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-right: 1rem;
-        }
-
-        .save-btn:hover {
-            background: var(--ioka-blue);
-        }
-
-        .reset-btn {
-            background: var(--ioka-medium-gray);
-            color: var(--text-dark);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .reset-btn:hover {
-            background: var(--ioka-dark-gray);
-            color: var(--text-white);
-        }
-
-        .message {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            display: none;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        /* Instructions */
-        .instructions {
-            background: #e8f4fd;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--ioka-turquoise);
-        }
-
-        .instructions h3 {
-            color: var(--ioka-dark-blue);
-            margin-bottom: 0.5rem;
-        }
-
-        .instructions ul {
-            padding-left: 1.5rem;
-            color: var(--ioka-dark-gray);
-        }
-
-        .instructions li {
-            margin-bottom: 0.3rem;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-container">
-        <!-- Header -->
-        <header class="admin-header">
-            <h1>IOKA Broker Management</h1>
-            <p>Admin Panel - Update TV Dashboard Data</p>
-        </header>
-
-        <!-- Main Content -->
-        <main class="admin-main">
-            <!-- Instructions -->
-            <div class="instructions">
-                <h3>📋 How to Use:</h3>
-                <ul>
-                    <li>Edit the fields below to update the TV dashboard</li>
-                    <li>Progress is calculated automatically from Commission and Target</li>
-                    <li>Click "Save Changes" to update the data</li>
-                    <li>Changes will reflect on the TV within 30 seconds</li>
-                </ul>
-            </div>
-
-            <!-- Logo Section -->
-            <section class="logo-section">
-                <h2>Company Logo</h2>
-                <div class="logo-preview">
-                    <img id="logo-preview-img" src="ioka-logo.png" alt="Logo Preview">
-                    <div>
-                        <p>Current logo displayed on TV</p>
-                        <p><small>Recommended: 200x60px PNG with transparent background</small></p>
+        brokerData.forEach(broker => {
+            const progress = calculateProgress(broker.commission, broker.target);
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="rank">${broker.rank}</td>
+                <td class="photo"><img src="${broker.photo}" alt="${broker.name}" class="broker-photo"></td>
+                <td class="name">${broker.name}</td>
+                <td class="commission number">${formatNumber(broker.commission)}</td>
+                <td class="progress-cell">
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${progress}%">${progress}%</div>
                     </div>
-                </div>
-                <input type="text" id="logo-url" class="logo-input" placeholder="Enter logo URL (e.g., ioka-logo.png)" value="ioka-logo.png">
-            </section>
+                </td>
+                <td class="target number">${formatNumber(broker.target)}</td>
+                <td class="listings number">${formatNumber(broker.listings)}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
 
-            <!-- Brokers Section -->
-            <section class="brokers-section">
-                <h2>Brokers Ranking</h2>
-                <div id="brokers-container">
-                    <!-- Broker forms will be generated here -->
-                </div>
-            </section>
+    // Initialize the dashboard
+    function initDashboard() {
+        updateDate();
+        populateBrokersTable();
+        
+        // Update date every minute
+        setInterval(updateDate, 60000);
+        
+        // Update data every 30 seconds
+        setInterval(populateBrokersTable, 30000);
+    }
 
-            <!-- Actions Section -->
-            <section class="actions-section">
-                <button onclick="saveData()" class="save-btn">💾 Save All Changes</button>
-                <button onclick="resetData()" class="reset-btn">🔄 Reset to Default</button>
-                <div id="message" class="message"></div>
-            </section>
-        </main>
-    </div>
-
-    <script>
-        // Sample broker data structure
-        const defaultBrokerData = [
-            {
-                rank: 1,
-                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1887&q=80",
-                name: "Ahmed Al Mansouri",
-                commission: 1500000,
-                target: 2000000,
-                listings: 15
-            },
-            {
-                rank: 2,
-                photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1899&q=80",
-                name: "Fatima Al Zahra",
-                commission: 950000,
-                target: 1500000,
-                listings: 12
-            },
-            {
-                rank: 3,
-                photo: "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1886&q=80",
-                name: "Mohammed Hassan",
-                commission: 2200000,
-                target: 2500000,
-                listings: 18
-            },
-            {
-                rank: 4,
-                photo: "https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?ixlib=rb-4.0.3&auto=format&fit=crop&w=1887&q=80",
-                name: "Layla Abbas",
-                commission: 800000,
-                target: 1500000,
-                listings: 9
-            },
-            {
-                rank: 5,
-                photo: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&auto=format&fit=crop&w=1780&q=80",
-                name: "Omar Khalid",
-                commission: 1800000,
-                target: 2500000,
-                listings: 17
-            }
-        ];
-
-        let currentData = [...defaultBrokerData];
-        let currentLogo = "ioka-logo.png";
-
-        // Load saved data from localStorage
-        function loadSavedData() {
-            const savedData = localStorage.getItem('iokaBrokerData');
-            const savedLogo = localStorage.getItem('iokaLogo');
-            
-            if (savedData) {
-                currentData = JSON.parse(savedData);
-            }
-            if (savedLogo) {
-                currentLogo = savedLogo;
-                document.getElementById('logo-url').value = currentLogo;
-                document.getElementById('logo-preview-img').src = currentLogo;
-            }
-        }
-
-        // Calculate progress percentage
-        function calculateProgress(commission, target) {
-            return Math.min(100, Math.round((commission / target) * 100));
-        }
-
-        // Format number with commas
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // Render broker forms
-        function renderBrokerForms() {
-            const container = document.getElementById('brokers-container');
-            container.innerHTML = '';
-
-            currentData.forEach((broker, index) => {
-                const progress = calculateProgress(broker.commission, broker.target);
-                
-                const card = document.createElement('div');
-                card.className = 'broker-card';
-                card.innerHTML = `
-                    <h3><span class="broker-number">${broker.rank}</span> Broker #${broker.rank}</h3>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="photo-${index}">Photo URL</label>
-                            <input type="text" id="photo-${index}" value="${broker.photo}" 
-                                   onchange="updateBroker(${index}, 'photo', this.value)"
-                                   oninput="updatePhotoPreview(${index}, this.value)">
-                            <img src="${broker.photo}" class="photo-preview" id="photo-preview-${index}" 
-                                 onerror="this.src='https://via.placeholder.com/80x80/0c2f6a/ffffff?text=❌'">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="name-${index}">Broker Name</label>
-                            <input type="text" id="name-${index}" value="${broker.name}" 
-                                   onchange="updateBroker(${index}, 'name', this.value)">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="commission-${index}">Commission (AED)</label>
-                            <input type="number" id="commission-${index}" value="${broker.commission}" 
-                                   onchange="updateBroker(${index}, 'commission', parseInt(this.value) || 0)"
-                                   oninput="updateProgress(${index})">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="target-${index}">Target (AED)</label>
-                            <input type="number" id="target-${index}" value="${broker.target}" 
-                                   onchange="updateBroker(${index}, 'target', parseInt(this.value) || 0)"
-                                   oninput="updateProgress(${index})">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="listings-${index}">Listings Collected</label>
-                            <input type="number" id="listings-${index}" value="${broker.listings}" 
-                                   onchange="updateBroker(${index}, 'listings', parseInt(this.value) || 0)">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Progress (Auto-calculated)</label>
-                            <div class="progress-display">
-                                ${progress}% (${formatNumber(broker.commission)} / ${formatNumber(broker.target)})
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Update broker data
-        function updateBroker(index, field, value) {
-            currentData[index][field] = value;
-        }
-
-        // Update photo preview
-        function updatePhotoPreview(index, url) {
-            const preview = document.getElementById(`photo-preview-${index}`);
-            preview.src = url;
-        }
-
-        // Update progress display
-        function updateProgress(index) {
-            const commission = parseInt(document.getElementById(`commission-${index}`).value) || 0;
-            const target = parseInt(document.getElementById(`target-${index}`).value) || 1;
-            const progress = calculateProgress(commission, target);
-            
-            // Update the progress display
-            const progressDiv = document.querySelectorAll('.progress-display')[index];
-            progressDiv.textContent = `${progress}% (${formatNumber(commission)} / ${formatNumber(target)})`;
-            
-            // Update the data model
-            currentData[index].commission = commission;
-            currentData[index].target = target;
-        }
-
-        // Update logo preview
-        function updateLogoPreview() {
-            const logoUrl = document.getElementById('logo-url').value;
-            document.getElementById('logo-preview-img').src = logoUrl;
-            currentLogo = logoUrl;
-        }
-
-        // Save data
-        function saveData() {
-            try {
-                // Update logo from input
-                currentLogo = document.getElementById('logo-url').value;
-                
-                // Save to localStorage
-                localStorage.setItem('iokaBrokerData', JSON.stringify(currentData));
-                localStorage.setItem('iokaLogo', currentLogo);
-                
-                showMessage('✅ Data saved successfully! TV will update within 30 seconds.', 'success');
-                
-                // Log the data that would be saved to JSON file
-                const dataToSave = {
-                    logo: currentLogo,
-                    brokers: currentData
-                };
-                console.log('Data to save to broker-data.json:', JSON.stringify(dataToSave, null, 2));
-                
-            } catch (error) {
-                showMessage('❌ Error saving data: ' + error.message, 'error');
-            }
-        }
-
-        // Reset data
-        function resetData() {
-            if (confirm('Are you sure you want to reset all data to default values?')) {
-                currentData = [...defaultBrokerData];
-                currentLogo = "ioka-logo.png";
-                document.getElementById('logo-url').value = currentLogo;
-                document.getElementById('logo-preview-img').src = currentLogo;
-                renderBrokerForms();
-                showMessage('🔄 Data reset to default values.', 'success');
-            }
-        }
-
-        // Show message
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            
-            setTimeout(() => {
-                messageDiv.textContent = '';
-                messageDiv.className = 'message';
-            }, 5000);
-        }
-
-        // Initialize admin panel
-        function initAdminPanel() {
-            loadSavedData();
-            renderBrokerForms();
-            
-            // Add event listener for logo URL changes
-            document.getElementById('logo-url').addEventListener('input', updateLogoPreview);
-        }
-
-        // Start the admin panel
-        window.addEventListener('DOMContentLoaded', initAdminPanel);
-    </script>
-</body>
-</html>
+    // Run initialization when page loads
+    document.addEventListener('DOMContentLoaded', initDashboard);
+</script>
