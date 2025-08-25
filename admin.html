@@ -159,6 +159,7 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1rem;
             margin-bottom: 1rem;
+            align-items: start;
         }
 
         .form-group {
@@ -253,21 +254,22 @@
             padding: 1rem;
             border-radius: 0.5rem;
             font-weight: 500;
-            display: none;
         }
 
         .success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
-            display: block;
         }
 
         .error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-            display: block;
+        }
+
+        .hidden {
+            display: none;
         }
 
         /* Instructions */
@@ -292,6 +294,12 @@
         .instructions li {
             margin-bottom: 0.3rem;
             font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--ioka-dark-gray);
         }
     </style>
 </head>
@@ -320,7 +328,7 @@
             <section class="logo-section">
                 <h2>Company Logo</h2>
                 <div class="logo-preview">
-                    <img id="logo-preview-img" src="ioka-logo.png" alt="Logo Preview">
+                    <img id="logo-preview-img" src="ioka-logo.png" alt="Logo Preview" onerror="this.src='https://via.placeholder.com/200x60/0c2f6a/ffffff?text=LOGO'">
                     <div>
                         <p>Current logo displayed on TV</p>
                         <p><small>Recommended: 200x60px PNG with transparent background</small></p>
@@ -332,7 +340,8 @@
             <!-- Brokers Section -->
             <section class="brokers-section">
                 <h2>Brokers Ranking</h2>
-                <div id="brokers-container">
+                <div id="loading" class="loading">Loading broker data...</div>
+                <div id="brokers-container" class="hidden">
                     <!-- Broker forms will be generated here -->
                 </div>
             </section>
@@ -341,7 +350,7 @@
             <section class="actions-section">
                 <button onclick="saveData()" class="save-btn">💾 Save All Changes</button>
                 <button onclick="resetData()" class="reset-btn">🔄 Reset to Default</button>
-                <div id="message" class="message"></div>
+                <div id="message" class="message hidden"></div>
             </section>
         </main>
     </div>
@@ -391,48 +400,117 @@
             }
         ];
 
-        let currentData = [...defaultBrokerData];
+        let currentData = [];
         let currentLogo = "ioka-logo.png";
-
-        // Load saved data from localStorage
-        async function loadSavedData() {
-            const savedData = localStorage.getItem('iokaBrokerData');
-            const savedLogo = localStorage.getItem('iokaLogo');
-            
-            // First, try to load data from JSON file
-            try {
-                const response = await fetch('broker-data.json');
-                const jsonData = await response.json();
-                if (jsonData.brokers) {
-                    currentData = jsonData.brokers;
-                }
-                if (jsonData.logo) {
-                    currentLogo = jsonData.logo;
-                }
-            } catch (error) {
-                console.log('Could not load broker-data.json, using localStorage or default data:', error);
-                // If loading from file fails, use saved data from browser instead
-                if (savedData) {
-                    currentData = JSON.parse(savedData);
-                }
-            }
-            
-            // Apply the logo from wherever we found it
-            if (savedLogo) {
-                currentLogo = savedLogo;
-            }
-            document.getElementById('logo-url').value = currentLogo;
-            document.getElementById('logo-preview-img').src = currentLogo;
-        }
 
         // Calculate progress percentage
         function calculateProgress(commission, target) {
+            if (!target || target === 0) return 0;
             return Math.min(100, Math.round((commission / target) * 100));
         }
 
         // Format number with commas
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Show/hide elements
+        function showElement(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function hideElement(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            showElement('message');
+            
+            setTimeout(() => {
+                hideElement('message');
+            }, 5000);
+        }
+
+        // Load data from JSON file or localStorage
+        async function loadData() {
+            try {
+                // Try to load from JSON file first
+                const response = await fetch('broker-data.json?t=' + new Date().getTime());
+                if (response.ok) {
+                    const jsonData = await response.json();
+                    if (jsonData.brokers && jsonData.brokers.length > 0) {
+                        currentData = jsonData.brokers;
+                    }
+                    if (jsonData.logo) {
+                        currentLogo = jsonData.logo;
+                    }
+                    return true;
+                }
+            } catch (error) {
+                console.log('Could not load from JSON file:', error);
+            }
+
+            // If JSON file fails, try localStorage
+            try {
+                const savedData = localStorage.getItem('iokaBrokerData');
+                const savedLogo = localStorage.getItem('iokaLogo');
+                
+                if (savedData) {
+                    currentData = JSON.parse(savedData);
+                }
+                if (savedLogo) {
+                    currentLogo = savedLogo;
+                }
+                return true;
+            } catch (error) {
+                console.log('Could not load from localStorage:', error);
+            }
+
+            // If all fails, use default data
+            currentData = [...defaultBrokerData];
+            return true;
+        }
+
+        // Update logo preview
+        function updateLogoPreview() {
+            const logoUrl = document.getElementById('logo-url').value;
+            document.getElementById('logo-preview-img').src = logoUrl;
+            currentLogo = logoUrl;
+        }
+
+        // Update broker data
+        function updateBroker(index, field, value) {
+            if (field === 'commission' || field === 'target' || field === 'listings') {
+                value = parseInt(value) || 0;
+            }
+            currentData[index][field] = value;
+            
+            // Update progress if commission or target changed
+            if (field === 'commission' || field === 'target') {
+                updateProgressDisplay(index);
+            }
+        }
+
+        // Update progress display
+        function updateProgressDisplay(index) {
+            const broker = currentData[index];
+            const progress = calculateProgress(broker.commission, broker.target);
+            const progressDiv = document.querySelectorAll('.progress-display')[index];
+            if (progressDiv) {
+                progressDiv.textContent = `${progress}% (${formatNumber(broker.commission)} / ${formatNumber(broker.target)})`;
+            }
+        }
+
+        // Update photo preview
+        function updatePhotoPreview(index, url) {
+            const preview = document.getElementById(`photo-preview-${index}`);
+            if (preview) {
+                preview.src = url;
+            }
         }
 
         // Render broker forms
@@ -467,21 +545,21 @@
                         <div class="form-group">
                             <label for="commission-${index}">Commission (AED)</label>
                             <input type="number" id="commission-${index}" value="${broker.commission}" 
-                                   onchange="updateBroker(${index}, 'commission', parseInt(this.value) || 0)"
-                                   oninput="updateProgress(${index})">
+                                   onchange="updateBroker(${index}, 'commission', this.value)"
+                                   oninput="updateBroker(${index}, 'commission', this.value); updateProgressDisplay(${index})">
                         </div>
 
                         <div class="form-group">
                             <label for="target-${index}">Target (AED)</label>
                             <input type="number" id="target-${index}" value="${broker.target}" 
-                                   onchange="updateBroker(${index}, 'target', parseInt(this.value) || 0)"
-                                   oninput="updateProgress(${index})">
+                                   onchange="updateBroker(${index}, 'target', this.value)"
+                                   oninput="updateBroker(${index}, 'target', this.value); updateProgressDisplay(${index})">
                         </div>
 
                         <div class="form-group">
                             <label for="listings-${index}">Listings Collected</label>
                             <input type="number" id="listings-${index}" value="${broker.listings}" 
-                                   onchange="updateBroker(${index}, 'listings', parseInt(this.value) || 0)">
+                                   onchange="updateBroker(${index}, 'listings', this.value)">
                         </div>
 
                         <div class="form-group">
@@ -496,39 +574,6 @@
             });
         }
 
-        // Update broker data
-        function updateBroker(index, field, value) {
-            currentData[index][field] = value;
-        }
-
-        // Update photo preview
-        function updatePhotoPreview(index, url) {
-            const preview = document.getElementById(`photo-preview-${index}`);
-            preview.src = url;
-        }
-
-        // Update progress display
-        function updateProgress(index) {
-            const commission = parseInt(document.getElementById(`commission-${index}`).value) || 0;
-            const target = parseInt(document.getElementById(`target-${index}`).value) || 1;
-            const progress = calculateProgress(commission, target);
-            
-            // Update the progress display
-            const progressDiv = document.querySelectorAll('.progress-display')[index];
-            progressDiv.textContent = `${progress}% (${formatNumber(commission)} / ${formatNumber(target)})`;
-            
-            // Update the data model
-            currentData[index].commission = commission;
-            currentData[index].target = target;
-        }
-
-        // Update logo preview
-        function updateLogoPreview() {
-            const logoUrl = document.getElementById('logo-url').value;
-            document.getElementById('logo-preview-img').src = logoUrl;
-            currentLogo = logoUrl;
-        }
-
         // Save data
         function saveData() {
             try {
@@ -541,12 +586,13 @@
                 
                 showMessage('✅ Data saved successfully! TV will update within 30 seconds.', 'success');
                 
-                // Log the data that would be saved to JSON file
+                // Show data for GitHub update
                 const dataToSave = {
                     logo: currentLogo,
                     brokers: currentData
                 };
-                console.log('Data to save to broker-data.json:', JSON.stringify(dataToSave, null, 2));
+                console.log('COPY THIS DATA TO broker-data.json ON GITHUB:');
+                console.log(JSON.stringify(dataToSave, null, 2));
                 
             } catch (error) {
                 showMessage('❌ Error saving data: ' + error.message, 'error');
@@ -565,25 +611,28 @@
             }
         }
 
-        // Show message
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = text;
-            messageDiv.className = `message ${type}`;
-            
-            setTimeout(() => {
-                messageDiv.textContent = '';
-                messageDiv.className = 'message';
-            }, 5000);
-        }
-
         // Initialize admin panel
         async function initAdminPanel() {
-            await loadSavedData();
-            renderBrokerForms();
-            
-            // Add event listener for logo URL changes
-            document.getElementById('logo-url').addEventListener('input', updateLogoPreview);
+            try {
+                await loadData();
+                
+                // Set logo
+                document.getElementById('logo-url').value = currentLogo;
+                document.getElementById('logo-preview-img').src = currentLogo;
+                
+                // Render forms
+                renderBrokerForms();
+                
+                // Show content
+                hideElement('loading');
+                showElement('brokers-container');
+                
+                // Add event listener for logo URL changes
+                document.getElementById('logo-url').addEventListener('input', updateLogoPreview);
+                
+            } catch (error) {
+                showMessage('❌ Error loading data: ' + error.message, 'error');
+            }
         }
 
         // Start the admin panel
