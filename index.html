@@ -291,50 +291,6 @@
     </div>
 
     <script>
-        // Broker data for 5 brokers
-        const brokerData = [
-            {
-                rank: 1,
-                photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
-                name: "Ahmed Al Mansouri",
-                commission: 1500000,
-                target: 2000000,
-                listings: 15
-            },
-            {
-                rank: 2,
-                photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1899&q=80",
-                name: "Fatima Al Zahra",
-                commission: 950000,
-                target: 1500000,
-                listings: 12
-            },
-            {
-                rank: 3,
-                photo: "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1886&q=80",
-                name: "Mohammed Hassan",
-                commission: 2200000,
-                target: 2500000,
-                listings: 18
-            },
-            {
-                rank: 4,
-                photo: "https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
-                name: "Layla Abbas",
-                commission: 800000,
-                target: 1500000,
-                listings: 9
-            },
-            {
-                rank: 5,
-                photo: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1780&q=80",
-                name: "Omar Khalid",
-                commission: 1800000,
-                target: 2500000,
-                listings: 17
-            }
-        ];
-
         // Function to format numbers with commas
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -353,8 +309,28 @@
             document.getElementById('current-date').textContent = formatter.format(now);
         }
 
+        // Function to load logo and data from JSON file
+        async function loadData() {
+            try {
+                const response = await fetch('broker-data.json');
+                const data = await response.json();
+                
+                // Update logo
+                if (data.logo) {
+                    document.getElementById('company-logo').src = data.logo;
+                }
+                
+                // Return broker data
+                return data.brokers || [];
+            } catch (error) {
+                console.error('Error loading data:', error);
+                return [];
+            }
+        }
+
         // Function to populate the brokers table
-        function populateBrokersTable() {
+        async function populateBrokersTable() {
+            const brokerData = await loadData();
             const tableBody = document.getElementById('brokers-table-body');
             tableBody.innerHTML = '';
 
@@ -386,6 +362,9 @@
             
             // Update date every minute
             setInterval(updateDate, 60000);
+            
+            // Update data every 30 seconds
+            setInterval(populateBrokersTable, 30000);
         }
 
         // Run initialization when page loads
