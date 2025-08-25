@@ -312,7 +312,7 @@
         // Function to load logo and data from JSON file
         async function loadData() {
             try {
-                const response = await fetch('broker-data.json');
+                const response = await fetch('broker-data.json?t=' + new Date().getTime());
                 const data = await response.json();
                 
                 // Update logo
