@@ -4,34 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IOKA Broker Ranking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* IOKA Color Scheme */
+        /* IOKA Color Scheme - Extracted from website */
         :root {
+            --ioka-dark-blue: #0c2f6a;
             --ioka-blue: #0055b8;
-            --ioka-navy: #0c2f6a;
-            --ioka-light-bg: #f5f7fa;
+            --ioka-turquoise: #00a0b0;
+            --ioka-light-gray: #f5f7fa;
+            --ioka-medium-gray: #e2e8f0;
+            --ioka-dark-gray: #64748b;
             --text-white: #ffffff;
-            --text-dark: #333333;
-            --positive-green: #3fb950;
+            --text-dark: #1e293b;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background-color: var(--ioka-navy);
+            background: linear-gradient(135deg, var(--ioka-dark-blue) 0%, #1e4a82 100%);
             color: var(--text-white);
             height: 100vh;
             width: 100vw;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            padding: 2rem;
+            padding: 1.5rem;
+        }
+
+        /* Container with 16:9 aspect ratio */
+        .container {
+            width: 100%;
+            height: 100%;
+            max-width: 1600px;
+            max-height: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         /* Header Styles */
@@ -39,11 +56,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2rem 3rem;
-            background-color: var(--ioka-navy);
-            border-bottom: 3px solid var(--ioka-blue);
-            height: 15vh;
-            min-height: 120px;
+            padding: 1.2rem 2rem;
+            background: var(--ioka-dark-blue);
+            border-bottom: 1px solid var(--ioka-blue);
         }
 
         .logo-container {
@@ -51,27 +66,26 @@
         }
 
         .logo {
-            height: 80px;
+            height: 45px;
             width: auto;
-            max-width: 200px;
             object-fit: contain;
         }
 
         .title {
             flex: 2;
             text-align: center;
-            font-size: 4rem;
-            font-weight: 700;
+            font-size: 1.8rem;
+            font-weight: 500;
             color: var(--text-white);
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 0.5px;
         }
 
         .date-container {
             flex: 1;
             text-align: right;
-            font-size: 2.2rem;
-            font-weight: 500;
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--ioka-medium-gray);
         }
 
         /* Main Content Styles */
@@ -79,39 +93,37 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 2rem 0;
-            height: 85vh;
+            padding: 1.5rem;
+            overflow: hidden;
         }
 
-        /* Table Styles */
+        /* Table Styles - Minimalist */
         .brokers-table {
             width: 100%;
-            border-collapse: collapse;
-            background-color: var(--ioka-light-bg);
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--ioka-light-gray);
             color: var(--text-dark);
-            border-radius: 1.5rem;
+            border-radius: 0.8rem;
             overflow: hidden;
-            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
-            table-layout: fixed;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
         }
 
         .brokers-table th {
-            background-color: var(--ioka-blue);
+            background: var(--ioka-blue);
             color: var(--text-white);
-            padding: 2rem;
+            padding: 1.2rem;
             text-align: left;
-            font-size: 2.2rem;
+            font-size: 1rem;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            border-bottom: 2px solid var(--ioka-dark-blue);
         }
 
         .brokers-table td {
-            padding: 2rem;
-            font-size: 2rem;
-            border-bottom: 2px solid #ddd;
-            vertical-align: middle;
+            padding: 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 400;
+            border-bottom: 1px solid var(--ioka-medium-gray);
         }
 
         .brokers-table tr:last-child td {
@@ -119,190 +131,167 @@
         }
 
         .brokers-table tr:nth-child(even) {
-            background-color: #e8edf5;
+            background: rgba(245, 247, 250, 0.8);
         }
 
         .brokers-table tr:hover {
-            background-color: #dbe4f2;
-            transform: scale(1.02);
-            transition: transform 0.2s ease;
+            background: rgba(219, 228, 242, 0.8);
         }
 
         /* Specific Column Styles */
         .rank {
             text-align: center;
-            font-weight: 700;
-            font-size: 2.5rem;
-            width: 10%;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 8%;
+            color: var(--ioka-dark-blue);
         }
 
         .photo {
-            width: 14%;
+            width: 10%;
             text-align: center;
         }
 
         .broker-photo {
-            width: 90px;
-            height: 90px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--ioka-blue);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--ioka-turquoise);
         }
 
         .name {
-            width: 20%;
-            font-weight: 600;
-            font-size: 2.1rem;
+            width: 18%;
+            font-weight: 500;
+            color: var(--ioka-dark-blue);
         }
 
         .commission, .target {
-            width: 16%;
-            font-weight: 600;
-            font-size: 2.1rem;
+            width: 14%;
+            font-weight: 500;
+            color: var(--ioka-dark-gray);
         }
 
         .progress-cell {
-            width: 22%;
+            width: 20%;
         }
 
         .progress-container {
             width: 100%;
-            background-color: #ddd;
-            border-radius: 1.5rem;
+            background: var(--ioka-medium-gray);
+            border-radius: 1rem;
             overflow: hidden;
-            height: 40px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 25px;
         }
 
         .progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, var(--ioka-blue), var(--positive-green));
-            border-radius: 1.5rem;
+            background: linear-gradient(90deg, var(--ioka-turquoise), var(--ioka-blue));
+            border-radius: 1rem;
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding-right: 1rem;
+            padding-right: 0.8rem;
             color: var(--text-white);
-            font-weight: 600;
-            font-size: 1.8rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-            transition: width 0.5s ease;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: width 0.3s ease;
         }
 
         .listings {
-            width: 12%;
+            width: 10%;
             text-align: center;
-            font-weight: 600;
-            font-size: 2.1rem;
+            font-weight: 500;
+            color: var(--ioka-dark-gray);
         }
 
-        /* 4K TV Optimizations */
-        @media (min-width: 3840px) {
-            body {
-                padding: 3rem;
-            }
-            
-            .header {
-                padding: 3rem 4rem;
-                height: 18vh;
-            }
-            
-            .logo {
-                height: 100px;
-            }
-            
-            .title {
-                font-size: 5rem;
-            }
-            
-            .date-container {
-                font-size: 3rem;
-            }
-            
-            .brokers-table th {
-                padding: 2.5rem;
-                font-size: 2.8rem;
-            }
-            
-            .brokers-table td {
-                padding: 2.5rem;
-                font-size: 2.5rem;
-            }
-            
-            .broker-photo {
-                width: 110px;
-                height: 110px;
-            }
-            
-            .progress-container {
-                height: 50px;
-            }
-            
-            .progress-bar {
-                font-size: 2.2rem;
-            }
-            
-            .name, .commission, .target, .listings {
-                font-size: 2.4rem;
-            }
-            
-            .rank {
-                font-size: 3rem;
-            }
+        /* Number formatting */
+        .number {
+            font-feature-settings: 'tnum' 1;
+            font-variant-numeric: tabular-nums;
         }
 
-        /* Scrollbar styling for webkit browsers */
+        /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 12px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: var(--ioka-light-bg);
+            background: var(--ioka-medium-gray);
+            border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--ioka-blue);
-            border-radius: 6px;
+            background: var(--ioka-turquoise);
+            border-radius: 3px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #004399;
+        /* Responsive adjustments */
+        @media (max-width: 1920px) {
+            .container {
+                max-width: 1400px;
+                max-height: 787px;
+            }
+            
+            .title {
+                font-size: 1.6rem;
+            }
+            
+            .brokers-table th,
+            .brokers-table td {
+                padding: 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .broker-photo {
+                width: 45px;
+                height: 45px;
+            }
+        }
+
+        /* Focus states for accessibility */
+        .brokers-table th:focus,
+        .brokers-table td:focus {
+            outline: 2px solid var(--ioka-turquoise);
+            outline-offset: -2px;
         }
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="header">
-        <div class="logo-container">
-            <img src="ioka-logo.png" alt="IOKA Logo" class="logo" id="company-logo">
-        </div>
-        <div class="title">Broker Ranking</div>
-        <div class="date-container" id="current-date">26 May 2024</div>
-    </header>
+    <!-- Main Container with 16:9 ratio -->
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="ioka-logo.png" alt="IOKA Logo" class="logo" id="company-logo">
+            </div>
+            <div class="title">Broker Ranking</div>
+            <div class="date-container" id="current-date">26 May 2024</div>
+        </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <table class="brokers-table">
-            <thead>
-                <tr>
-                    <th class="rank">Rank</th>
-                    <th class="photo">Photo</th>
-                    <th class="name">Broker Name</th>
-                    <th class="commission">Commission (AED)</th>
-                    <th class="progress-cell">Progress</th>
-                    <th class="target">Target (AED)</th>
-                    <th class="listings">Listings</th>
-                </tr>
-            </thead>
-            <tbody id="brokers-table-body">
-                <!-- Data will be populated by JavaScript -->
-            </tbody>
-        </table>
-    </main>
+        <!-- Main Content -->
+        <main class="main-content">
+            <table class="brokers-table">
+                <thead>
+                    <tr>
+                        <th class="rank">Rank</th>
+                        <th class="photo">Photo</th>
+                        <th class="name">Broker Name</th>
+                        <th class="commission">Commission (AED)</th>
+                        <th class="progress-cell">Progress</th>
+                        <th class="target">Target (AED)</th>
+                        <th class="listings">Listings</th>
+                    </tr>
+                </thead>
+                <tbody id="brokers-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </main>
+    </div>
 
     <script>
-        // Broker data - EDIT THESE VALUES TO UPDATE THE DASHBOARD
+        // Broker data for 5 brokers
         const brokerData = [
             {
                 rank: 1,
@@ -327,6 +316,22 @@
                 commission: 2200000,
                 target: 2500000,
                 listings: 18
+            },
+            {
+                rank: 4,
+                photo: "https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
+                name: "Layla Abbas",
+                commission: 800000,
+                target: 1500000,
+                listings: 9
+            },
+            {
+                rank: 5,
+                photo: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1780&q=80",
+                name: "Omar Khalid",
+                commission: 1800000,
+                target: 2500000,
+                listings: 17
             }
         ];
 
@@ -348,23 +353,10 @@
             document.getElementById('current-date').textContent = formatter.format(now);
         }
 
-        // Function to load logo from JSON
-        async function loadLogo() {
-            try {
-                const response = await fetch('broker-data.json');
-                const data = await response.json();
-                if (data.logo) {
-                    document.getElementById('company-logo').src = data.logo;
-                }
-            } catch (error) {
-                console.log('Using default logo');
-            }
-        }
-
         // Function to populate the brokers table
         function populateBrokersTable() {
             const tableBody = document.getElementById('brokers-table-body');
-            tableBody.innerHTML = ''; // Clear existing content
+            tableBody.innerHTML = '';
 
             brokerData.forEach(broker => {
                 const progress = calculateProgress(broker.commission, broker.target);
@@ -374,14 +366,14 @@
                     <td class="rank">${broker.rank}</td>
                     <td class="photo"><img src="${broker.photo}" alt="${broker.name}" class="broker-photo"></td>
                     <td class="name">${broker.name}</td>
-                    <td class="commission">${formatNumber(broker.commission)}</td>
+                    <td class="commission number">${formatNumber(broker.commission)}</td>
                     <td class="progress-cell">
                         <div class="progress-container">
                             <div class="progress-bar" style="width: ${progress}%">${progress}%</div>
                         </div>
                     </td>
-                    <td class="target">${formatNumber(broker.target)}</td>
-                    <td class="listings">${formatNumber(broker.listings)}</td>
+                    <td class="target number">${formatNumber(broker.target)}</td>
+                    <td class="listings number">${formatNumber(broker.listings)}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -390,27 +382,10 @@
         // Initialize the dashboard
         function initDashboard() {
             updateDate();
-            loadLogo();
             populateBrokersTable();
             
-            // Update date every day at midnight (Dubai time)
-            const now = new Date();
-            const dubaiTimeOffset = 4 * 60; // GMT+4 in minutes
-            const currentOffset = now.getTimezoneOffset();
-            const dubaiNow = new Date(now.getTime() + (dubaiTimeOffset + currentOffset) * 60 * 1000);
-            
-            const timeUntilMidnight = (24 - dubaiNow.getHours()) * 60 * 60 * 1000 - 
-                                     dubaiNow.getMinutes() * 60 * 1000 - 
-                                     dubaiNow.getSeconds() * 1000;
-            
-            setTimeout(() => {
-                updateDate();
-                // Set daily update
-                setInterval(updateDate, 24 * 60 * 60 * 1000);
-            }, timeUntilMidnight);
-
-            // Update data every 30 seconds
-            setInterval(populateBrokersTable, 30000);
+            // Update date every minute
+            setInterval(updateDate, 60000);
         }
 
         // Run initialization when page loads
