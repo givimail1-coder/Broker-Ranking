@@ -575,30 +575,27 @@
         }
 
         // Save data
-        function saveData() {
-            try {
-                // Update logo from input
-                currentLogo = document.getElementById('logo-url').value;
-                
-                // Save to localStorage
-                localStorage.setItem('iokaBrokerData', JSON.stringify(currentData));
-                localStorage.setItem('iokaLogo', currentLogo);
-                
-                showMessage('✅ Data saved successfully! TV will update within 30 seconds.', 'success');
-                
-                // Show data for GitHub update
-                const dataToSave = {
-                    logo: currentLogo,
-                    brokers: currentData
-                };
-                console.log('COPY THIS DATA TO broker-data.json ON GITHUB:');
-                console.log(JSON.stringify(dataToSave, null, 2));
-                
-            } catch (error) {
-                showMessage('❌ Error saving data: ' + error.message, 'error');
-            }
+        async function saveData() {
+    try {
+        currentLogo = document.getElementById('logo-url').value;
+        const dataToSave = {
+            logo: currentLogo,
+            brokers: currentData
+        };
+        const response = await fetch('/.netlify/functions/save-brokers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSave)
+        });
+        if (response.ok) {
+            showMessage('✅ Data saved!', 'success');
+        } else {
+            showMessage('❌ Error saving data.', 'error');
         }
-
+    } catch (error) {
+        showMessage('❌ Error: ' + error.message, 'error');
+    }
+}
         // Reset data
         function resetData() {
             if (confirm('Are you sure you want to reset all data to default values?')) {
